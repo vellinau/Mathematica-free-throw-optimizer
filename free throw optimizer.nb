@@ -1,0 +1,1799 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     79985,       1791]
+NotebookOptionsPosition[     75376,       1703]
+NotebookOutlinePosition[     75904,       1722]
+CellTagsIndexPosition[     75861,       1719]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[TextData[{
+ StyleBox["Simple interactive free throw optimizer\n", "Title"],
+ StyleBox["Pawe\[LSlash]", "Subtitle",
+  IgnoreSpellCheck->True],
+ StyleBox[" ", "Subtitle"],
+ StyleBox["Brachaczek", "Subtitle",
+  IgnoreSpellCheck->True],
+ StyleBox[", 382318", "Subtitle"]
+}], "Section",
+ CellChangeTimes->{{3.8285136163920965`*^9, 3.8285136176499057`*^9}, {
+  3.8319835677988544`*^9, 3.831983602062791*^9}, {3.8319836875915666`*^9, 
+  3.8319836919656544`*^9}},ExpressionUUID->"b2d6c87f-a5f8-4e7e-ada2-\
+39480c5402f5"],
+
+Cell[CellGroupData[{
+
+Cell["Abstract", "Section",
+ CellChangeTimes->{{3.8285136215809126`*^9, 
+  3.828513624171563*^9}},ExpressionUUID->"35a5df7a-d647-4e78-8a92-\
+4c3c5aa651ea"],
+
+Cell["\<\
+We devise a basketball free throw optimizer in Mathematica based on existing \
+literature and our own simplifications. Taking into account player\
+\[CloseCurlyQuote]s height and other variables, such as basketball size, the \
+program calculates the optimal release velocity and angle for a specified \
+aim, e.g. towards the center of the hoop. We also illustrate the ball\
+\[CloseCurlyQuote]s trajectory on a graph. The results may be less accurate \
+than those already existing in literature, since further optimization would \
+significantly increase computation time and take away from \
+\[OpenCurlyDoubleQuote]interactive experience\[CloseCurlyDoubleQuote].\
+\>", "Text",
+ CellChangeTimes->{{3.8319837133051825`*^9, 3.8319837442717085`*^9}, {
+  3.832152931228454*^9, 3.8321529839021397`*^9}, {3.832153017925397*^9, 
+  3.832153018362681*^9}, {3.832153093896048*^9, 3.8321530992071247`*^9}, {
+  3.832153131231031*^9, 3.8321535505521603`*^9}, {3.832153601395626*^9, 
+  3.8321536360989075`*^9}},ExpressionUUID->"a177ea52-916b-4245-9a74-\
+46e46580d8f1"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Detailed explanation, theoretical background, etc.", "Section",
+ CellChangeTimes->{{3.82851364482456*^9, 3.8285136593258524`*^9}, {
+  3.831983773616417*^9, 
+  3.8319837761206074`*^9}},ExpressionUUID->"98d4cf06-e333-42b1-bf71-\
+66ca76ed5aa6"],
+
+Cell[TextData[{
+ "Free throws often decide the outcome of basketball games. Players who \
+struggle at the free throw line (converting less than 50% of their chances) \
+can be fouled to the detriment of their team, lowering its expected value of \
+points per possession. While there are many other explanations of why some \
+high-profile players struggle shooting their free throws -- such as stress, \
+fatigue, or incorrect shooting form -- optimizing the velocity and release \
+angle can still increase a success probability and be of value to basketball \
+teams.\n\nIn [1], ",
+ StyleBox["Gablonsky",
+  IgnoreSpellCheck->True],
+ " and Lang propose a simple 2D model for free throws, ignoring the sideways \
+error and spin of the ball. Using Newton\[CloseCurlyQuote]s second law, they \
+derive equations of motion in the horizontal and vertical directions, \
+respectively:\n",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"\t\t", 
+    RowBox[{
+     RowBox[{"m", " ", 
+      FractionBox[
+       SubscriptBox["dv", "x"], "dt"]}], "=", 
+     RowBox[{"-", 
+      SubscriptBox["kv", "x"]}]}]}], TraditionalForm]],
+  FontSize->22,
+  FontWeight->"Normal",ExpressionUUID->"73e643a9-5153-4575-b502-2affae155262"],
+ ",",
+ StyleBox["\n\t\t",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    RowBox[{"m", " ", 
+     FractionBox[
+      SubscriptBox["dv", "y"], "dt"]}], "=", 
+    RowBox[{"mg", "-", 
+     SubscriptBox["kv", "y"]}]}], TraditionalForm]],
+  FontSize->22,
+  FontWeight->"Normal",ExpressionUUID->"034ef9df-bded-4c78-8255-a564dddb65fa"],
+ ",\nwhere m is mass of the ball; g -- standard gravity; k -- air viscosity \
+coefficient. These equations can be analytically solved, yielding\n\t\t\t",
+ StyleBox["x(t) = ",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   FractionBox[
+    SubscriptBox["mv", "o"], "k"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "9e5c2ddd-274e-42b7-8b5e-52e192900338"],
+ StyleBox[" cos(",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  SubscriptBox["\[Theta]", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "f3df01fa-55c6-4847-9f55-7df6ff7f1a8d"],
+ StyleBox[") (1 - exp[-",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   FractionBox["k", "m"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "9308363b-cee9-47e7-b39f-34736f97379b"],
+ StyleBox[" t]),\n\t\ty(t) = ",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    FractionBox["mg", "k"], "t"}], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "fd4009d8-756b-4356-9780-379d02edbc6c"],
+ StyleBox["-",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   RowBox[{" ", 
+    FractionBox["m", "k"]}], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "e63a8764-98a1-4add-995e-3bce3e7dcf23"],
+ StyleBox[" (",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  SubscriptBox["v", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "b5187a5f-f1db-408e-9f9d-27fa1439f66b"],
+ StyleBox[" sin(",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  SubscriptBox["\[Theta]", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "3695e754-65ef-4219-b5d6-e2d0f5fda72b"],
+ StyleBox[") - ",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   FractionBox["mg", "k"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "24b71fd6-b8a3-455e-abd8-c01b26d92771"],
+ StyleBox[") exp[-",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   FractionBox["k", "m"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "62952d98-ed17-4129-b7d9-0d0c65721438"],
+ StyleBox[" t] + ",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   FractionBox["m", "k"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "ce03391e-366b-40dc-8c8f-6710bd349594"],
+ StyleBox["(",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  SubscriptBox["v", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "e8d5f9e2-8c00-4767-b268-1bb2473ce4c3"],
+ StyleBox[" sin(",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  SubscriptBox["\[Theta]", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "0f59c221-728d-49ba-b49e-a53a9a57ef2f"],
+ StyleBox[") - ",
+  FontSize->22,
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   FractionBox["mg", "k"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "7ca587f0-38c0-4bc4-be76-120698e488be"],
+ StyleBox[").\n",
+  FontSize->22,
+  FontWeight->"Normal"],
+ StyleBox["Values ",
+  FontWeight->"Normal"],
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["v", "o"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "b87b6930-462c-43ee-b362-90b0fa2db45b"],
+ " and ",
+ Cell[BoxData[
+  SubscriptBox["\[Theta]", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "08586e1c-e186-4c28-a972-7332d015db02"],
+ " correspond to release velocity and angle at release. We will want to find \
+optimal values -- but we haven\[CloseCurlyQuote]t defined yet what \
+\[OpenCurlyDoubleQuote]optimal\[CloseCurlyDoubleQuote] means in our model.\n\n\
+First we define necessary conditions for successful trajectory. We assume the \
+trajectory of the center of the ball starts at the point (1.25 x player\
+\[CloseCurlyQuote]s height, 0) -- since the player shoots from above their \
+head [1] -- and the position of the rim is defined in relation to this point, \
+based on height of the rim (3.05 meters) and distance from the free throw \
+line (about 4.6 meters, with small difference between NBA and FIBA rules). We \
+also take small correction, since ball is usually released from ahead of the \
+line (only player\[CloseCurlyQuote]s feet need to be behind it). We can call \
+trajectory \[OpenCurlyDoubleQuote]successful\[CloseCurlyDoubleQuote], if the \
+ball passes above the rim (i.e. in moment ",
+ StyleBox["t ",
+  FontSlant->"Italic"],
+ "for which x(t) = distance to the front of the rim, y(t) > 3.05 + ball \
+radius), and if later there is a moment ",
+ StyleBox["t ",
+  FontSlant->"Italic"],
+ "in which |x(t) - aim| < 0.0001 and y(t) = 3.05. We can only aim towards the \
+feasible points, such that the center of the ball is inside the hoop and the \
+ball\[CloseCurlyQuote]s distance from the rim is greater than the ball\
+\[CloseCurlyQuote]s radius. We do not account of the deflections, however we \
+allow to aim towards the back of the rim -- such shot is successful as long \
+as the center of the ball is not above the rim at the time of deflection \
+(when x(t) = aim).\n\nFor specified aim, we can then find such ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["v", "o"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "960343b8-a831-4dd8-bca3-596ea72c9abd"],
+ " and ",
+ Cell[BoxData[
+  SubscriptBox["\[Theta]", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "b653959f-336d-42ec-a2e5-4df21e128af6"],
+ " that maximize our objective function and satisfy necessary constraints \
+(from the previous paragraph) up to a certain accuracy. Therefore we have to \
+choose an objective function -- but because of interactive nature of our \
+presentation, this function cannot be too costly to compute. In our model, we \
+propose 4 different objectives:\n\t1. Closest aim: we can choose such \
+trajectory that the actual aim is as close as possible to the one we \
+intended. Roughly, this option can reduce error from ",
+ Cell[BoxData[
+  FormBox[
+   SuperscriptBox["10", 
+    RowBox[{"-", "4"}]], TraditionalForm]],ExpressionUUID->
+  "052eeb2a-a35e-4e25-9645-0f6a39010222"],
+ "m to ",
+ Cell[BoxData[
+  FormBox[
+   SuperscriptBox["10", 
+    RowBox[{"-", "8"}]], TraditionalForm]],ExpressionUUID->
+  "f2224ba5-36de-41d1-882e-42f9a080e5ae"],
+ "m, but since both of those numbers are very small, it\[CloseCurlyQuote]s \
+recommended to choose other options.\n\t2. Minimal ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["v", "o"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "b098d9e2-d9dc-443c-adba-17921de5dc76"],
+ " (default): studies [2] find that players tend to choose trajectories with \
+minimal release velocity, under the perception that minimizing used force \
+also minimizes the error.\n\t3. Minimal ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["v", "1"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "0a0aa1fe-3407-4cc7-b008-446a02cd9f84"],
+ ", i.e. horizontal velocity when passing above the front of the rim. This \
+objective is motivated by the conception that the \
+\[OpenCurlyDoubleQuote]shooter\[CloseCurlyQuote]s touch\
+\[CloseCurlyDoubleQuote] requires minimal velocity as the ball approaches the \
+rim, which also increases the chance of ball falling into the hoop even if \
+trajectory is not successful by our assumptions (e.g. because of a \
+\[OpenCurlyDoubleQuote]lucky\[CloseCurlyDoubleQuote] deflection). We define ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["v", "1"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "176ecda4-6a0d-4636-993a-71ddb374ca14"],
+ " as x\[CloseCurlyQuote](t) at such moment t.\n\t4. Highest arc, measured \
+when passing above the front of the rim. By common sense, this approach would \
+yield the biggest absolute margin of error. Practicing such shots can also be \
+useful for active-ball situations, when it\[CloseCurlyQuote]s legal for \
+another player to block a shot (though only while the ball is moving \
+upwards).\n\nFurther optimization, such as the one carried out in [1], would \
+also require finding aim that has the biggest margin of error. To quantify \
+both relative possible error in angle and velocity, we would need objective \
+function that is perhaps suited particularly towards the struggles of player \
+in need, e.g. placing 5 times as much weight on error in velocity. However, \
+carrying out what is essentially optimization within optimization turned out \
+to be too time-expensive.\n\nIn general, we would expect from our results to \
+decrease in both optimal ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["v", "o"], TraditionalForm]],
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "7cdef475-820f-4486-94a3-ee1bb8e607b8"],
+ " and ",
+ Cell[BoxData[
+  SubscriptBox["\[Theta]", "0"]],
+  CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+  CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+    3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+    3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+    3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+    3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+    3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+    3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+    3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+    3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9},
+     3.8319791874832783`*^9, {3.8319799966696978`*^9, 
+    3.8319800032026567`*^9}, {3.8319838536086*^9, 3.831983854273212*^9}},
+  FontFamily->"Source Sans Pro",ExpressionUUID->
+  "ceee16ea-adab-411c-adc2-83153d29f906"],
+ ", as the player\[CloseCurlyQuote]s height increases. While we do not \
+compute a margin of error for trajectory, it\[CloseCurlyQuote]s suggested ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"[", "1", "]"}], TraditionalForm]],ExpressionUUID->
+  "818f3f33-7e47-4071-a6fa-dc066feb2c05"],
+ " that the best aim is the one slightly towards the back of the rim (since \
+hitting it is more \[OpenCurlyDoubleQuote]forgivable\[CloseCurlyDoubleQuote] \
+that hitting the front of the rim). However, this trend might be less visible \
+in our model, since we mostly do not account for deflections. Optimization \
+method 2 roughly agrees with these preconceptions, and produce results \
+similar to those from [1], especially in terms of velocity.\n\nModel \
+variables include:\n\t- federation: FIBA (international organization) or NBA \
+(North American league), influencing the distance between the rim and free \
+throw line;\n\t- ball size: 5, 6 or 7, influencing the \
+ball\[CloseCurlyQuote]s mass and radius;\n\t- city: Denver, Chicago or \
+Seattle -- three cities with NBA history with differences in altitude and \
+latitude, therefore influencing standard gravity ",
+ StyleBox["g;",
+  FontSlant->"Italic"],
+ "\n\t- temperature, at standard pressure the main factor behind the air \
+viscosity ",
+ StyleBox["k;\n\t",
+  FontSlant->"Italic"],
+ "- player\[CloseCurlyQuote]s height, on which depends the point of release;\n\
+\t- aim, or rather how much do we deviate from the center of the rim.\nWe \
+also include constants such as rim\[CloseCurlyQuote]s diameter and height \
+(which do not vary between official competitions). All values, in metric \
+system (which sometimes requires conversion ft -> m), are supplied in the \
+code. Of model variables, only temperature has practically no impact on \
+optimal trajectory (in realistic range)."
+}], "Text",
+ CellChangeTimes->{{3.8319837553375874`*^9, 3.831983769102724*^9}, {
+   3.832156096067829*^9, 3.832156772836445*^9}, {3.8321568046260166`*^9, 
+   3.8321568523335724`*^9}, {3.832164999955137*^9, 3.8321650021265125`*^9}, {
+   3.832165049789637*^9, 3.8321651704949617`*^9}, {3.8321652490857353`*^9, 
+   3.832165663577462*^9}, {3.8321656989733706`*^9, 3.8321660735092106`*^9}, {
+   3.832166129292884*^9, 3.8321663523023057`*^9}, {3.832166392054901*^9, 
+   3.8321664369662104`*^9}, {3.832166482377477*^9, 3.832166509074377*^9}, {
+   3.8321665967719126`*^9, 3.8321667764320297`*^9}, {3.8321669470490427`*^9, 
+   3.832167046088357*^9}, {3.832167098826132*^9, 3.83216729441025*^9}, {
+   3.832167341967987*^9, 3.832167352856055*^9}, {3.832167395314988*^9, 
+   3.8321675125492268`*^9}, {3.8321691048399057`*^9, 3.832169140518997*^9}, {
+   3.832169258396245*^9, 3.8321693917547092`*^9}, {3.832169663401549*^9, 
+   3.8321699127850103`*^9}, {3.8321699472455177`*^9, 3.832170175609252*^9}, {
+   3.8321702058052845`*^9, 3.832170510631287*^9}, {3.8321705412647276`*^9, 
+   3.832170659576913*^9}, {3.8321706901011477`*^9, 3.832171193893237*^9}, {
+   3.8321712896951246`*^9, 3.832171301332865*^9}, {3.832171827215497*^9, 
+   3.8321718281682577`*^9}, {3.8321718635507574`*^9, 
+   3.8321718698303614`*^9}, {3.832172037758994*^9, 3.832172135438544*^9}, {
+   3.832172171867633*^9, 3.8321723890939865`*^9}, {3.8321724450182104`*^9, 
+   3.8321729788647966`*^9}, {3.8321742050562325`*^9, 
+   3.8321742404430265`*^9}, {3.832174413254213*^9, 3.832174461314928*^9}, {
+   3.8321744923395944`*^9, 3.832174492605296*^9}, {3.832174637865096*^9, 
+   3.8321746794941673`*^9}, {3.8321748037979555`*^9, 3.83217481580853*^9}, {
+   3.8333926828988485`*^9, 3.833392686873687*^9}, {3.8333927220862246`*^9, 
+   3.833392735111986*^9}, 3.8333929317268496`*^9, {3.833393008265131*^9, 
+   3.8333930685379777`*^9}},ExpressionUUID->"0c1f8466-8439-4c8c-9ff6-\
+ec6575b7c8f4"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Explanation of the code", "Section",
+ CellChangeTimes->{{3.828513665705829*^9, 
+  3.828513671585147*^9}},ExpressionUUID->"f7606e52-5ade-4090-8f1e-\
+f9cd2cc4d451"],
+
+Cell[TextData[{
+ "The code is divided into two parts. The first part initializes all \
+parameters and functions used in the second part, the interactive \
+presentation. \n\nFirst, we set physical parameters of a model. Most of them \
+are functions of a single variable. Some take completely different values for \
+different arguments, such as standard gravity ",
+ StyleBox["g ",
+  FontSlant->"Italic"],
+ "(with value -9.81 in general case, and more city-specific values for \
+Denver, Chicago or Seattle) -- this is done by defining function several \
+times for specific variables. Other functions, such as ",
+ StyleBox["airviscosity",
+  IgnoreSpellCheck->True,
+  FontSlant->"Italic"],
+ StyleBox[", ",
+  FontSlant->"Italic"],
+ "are just straightforward mathematical formulas, sourced in literature.\n\n\
+Then we define multivariate equations of horizontal and vertical motion, ",
+ StyleBox["x",
+  FontSlant->"Italic"],
+ " and ",
+ StyleBox["y",
+  FontSlant->"Italic"],
+ " respectively. These use parameters initialized in the previous part and \
+correspond to theoretical formulas. We also use Mathematica functions, namely \
+trigonometric and exponential functions.\n\nLater we define 4 different \
+optimization routines. All of them use the same variables, bar the first -- \
+which specifies the routine selected. First 3 use NMinimize, the 4th -- \
+NMaximize. They all optimize the same variables: ",
+ StyleBox["tmax",
+  FontSlant->"Italic"],
+ " (which specifies the moment when the center of the ball goes through the \
+hoop), ",
+ StyleBox["tmax2",
+  FontSlant->"Italic"],
+ " (which specifies the moment when the center of the ball is directly above \
+the front of the rim), ",
+ StyleBox["v0",
+  FontSlant->"Italic"],
+ " and ",
+ StyleBox["angle",
+  FontSlant->"Italic"],
+ " (which specify the velocity and angle on release). Two of the optimization \
+constraints define moments ",
+ StyleBox["tmax",
+  FontSlant->"Italic"],
+ " and ",
+ StyleBox["tmax2",
+  FontSlant->"Italic"],
+ ", another ensures that ",
+ StyleBox["tmax > tmax2 > 0",
+  FontSlant->"Italic"],
+ ". If not covered by the objective function, we also add constraints \
+requiring that 1) at ",
+ StyleBox["tmax",
+  FontSlant->"Italic"],
+ ", the ball is in desired position up to 0.1 mm; 2) at ",
+ StyleBox["tmax2,",
+  FontSlant->"Italic"],
+ " the lowest point of the ball is above the rim. Since the routine nr 4, \
+with the highest arc, tends to maximize velocity (sometimes to the point of \
+being unrealistic), we put a limit on the ",
+ StyleBox["v0",
+  FontSlant->"Italic"],
+ ". NMinimize and NMaximize also take starting intervals for variables, which \
+are mostly based on experimentation and vary a bit between routines depending \
+on expected outcome.\n\nAt last, we define graphical objects for later \
+visualization. Ball is a disk (of proper size) centered on a point of \
+release. Rim is a straight line in a proper distance from the point of \
+release. ",
+ StyleBox["Inhoop",
+  FontSlant->"Italic"],
+ " illustrates the moment when the ball goes through the hoop, this time \
+looking from above and zoomed in 2x -- so the rim is a circle, and the ball, \
+an orange disk, is centered depending on aim. Both ",
+ StyleBox["inhoop",
+  IgnoreSpellCheck->True,
+  FontSlant->"Italic"],
+ " and two texts below have set y coordinate, so they\[CloseCurlyQuote]re \
+centered just below the rim. ",
+ StyleBox["Textv",
+  FontSlant->"Italic"],
+ " displays velocity at release, while ",
+ StyleBox["texta",
+  FontSlant->"Italic"],
+ " -- the release angle, converted from radians to degrees. We also draw an \
+arrow from the point of release, illustrating a scaled vector of release \
+velocity with release angle.\n\nIn the main program, we use Manipulate to \
+display an interactive illustration of our results. The main part of it is \
+ParametricPlot of solutions of equations x, y, with plugged in parameters \
+depending on our choice and subsequent optimization (with results of \
+optimization called by /.) We append the graphic objects independent of \
+solutions as Prolog, and those dependent -- as Epilog. We also append ",
+ StyleBox["inhoop",
+  FontSlant->"Italic"],
+ " graphic using Show, since it\[CloseCurlyQuote]s not a primitive. We set \
+proper PlotRange and show only x axis due to aesthetic reasons. In order to \
+ignore potential warnings which have minimal effect on the results, we put \
+this procedure inside Quiet[].\n\nWe can manipulate variables such as player\
+\[CloseCurlyQuote]s height, temperature, and aim, using slider or writing an \
+exact value. Other parameters, namely federation, basketball size, city, and \
+optimization routine, can be chosen from the list of radio buttons. \
+Regardless of the names of variables in the code, we try to include \
+user-friendly info and recommended default values. The last radio button bar, \
+with optimization routines, is broken up into two columns to make a window \
+more compact."
+}], "Text",
+ CellChangeTimes->{{3.831983806415636*^9, 3.8319838069519043`*^9}, {
+   3.831985388108088*^9, 3.831985696378151*^9}, {3.8319858010866985`*^9, 
+   3.8319859333826466`*^9}, {3.8319860092498393`*^9, 
+   3.8319860574388323`*^9}, {3.8319861024811373`*^9, 3.831986529553277*^9}, {
+   3.8319882045200405`*^9, 3.831988391837109*^9}, 3.832070541534253*^9, {
+   3.832070594517933*^9, 3.8320708253058214`*^9}, {3.8320709525532637`*^9, 
+   3.8320711303593297`*^9}, {3.8320711840121326`*^9, 3.832071202210967*^9}, {
+   3.832150403640605*^9, 3.832150454644266*^9}, {3.832150577635995*^9, 
+   3.832150761482771*^9}, {3.832150807659442*^9, 3.832150860725136*^9}, {
+   3.832150927939821*^9, 3.8321510196995573`*^9}, {3.8321510880519905`*^9, 
+   3.832151139055519*^9}, {3.83215117484415*^9, 3.8321511754533763`*^9}, {
+   3.832151244109177*^9, 3.8321513209190335`*^9}, {3.8321514389188523`*^9, 
+   3.8321514393093777`*^9}, {3.8321514833613863`*^9, 3.8321516290385*^9}, {
+   3.8321516630461845`*^9, 3.8321517986511497`*^9}, {3.8321518559501524`*^9, 
+   3.8321520136200647`*^9}, {3.8321520578597174`*^9, 
+   3.8321521910589957`*^9}, {3.832152396923662*^9, 3.832152434938469*^9}, {
+   3.8321530636619616`*^9, 3.832153065895691*^9}, {3.832166890844259*^9, 
+   3.832166899217425*^9}, {3.8321719145386696`*^9, 3.8321719674317627`*^9}, {
+   3.8321720052199183`*^9, 3.8321720277146544`*^9}, {3.832174363755825*^9, 
+   3.832174374928067*^9}, 
+   3.8333928964855714`*^9},ExpressionUUID->"99fa6194-7eb2-4805-a64c-\
+ee1ebfba7a40"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Code in Mathematica", "Section",
+ CellChangeTimes->{{3.8285136744280286`*^9, 
+  3.82851367744556*^9}},ExpressionUUID->"dd371ef8-aa2d-4384-8dbe-\
+b80d5907d48f"],
+
+Cell[CellGroupData[{
+
+Cell["Initialization", "Subsection",
+ CellChangeTimes->{{3.831984142735449*^9, 
+  3.8319841695434437`*^9}},ExpressionUUID->"8f761681-229c-4227-b09d-\
+3a36f1fd1d27"],
+
+Cell[CellGroupData[{
+
+Cell["Physical parameters", "Subsubsection",
+ CellChangeTimes->{{3.83198388150448*^9, 
+  3.831983891903631*^9}},ExpressionUUID->"291e6ad7-1faf-41b4-a4dd-\
+5144690e643d"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"g", "[", "city_", "]"}], ":=", 
+   RowBox[{"-", "9.81"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"g", "[", "\"\<Denver\>\"", "]"}], ":=", 
+   RowBox[{"-", "9.798"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"g", "[", "\"\<Chicago\>\"", "]"}], ":=", 
+   RowBox[{"-", "9.804"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"g", "[", "\"\<Seattle\>\"", "]"}], ":=", 
+   RowBox[{"-", "9.811"}]}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.8318117977204037`*^9, 3.831811864697414*^9}, {
+   3.831811959752935*^9, 3.83181196628601*^9}, {3.831817195458939*^9, 
+   3.831817197654791*^9}, 3.8319791493390923`*^9},
+ CellLabel->"In[1]:=",ExpressionUUID->"fb716270-c78f-4aec-ac46-73afa8f307ab"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"airviscosity", "[", "temperature_", "]"}], ":=", 
+   RowBox[{"2.791", "*", 
+    RowBox[{"10", "^", 
+     RowBox[{"(", 
+      RowBox[{"-", "7"}], ")"}]}], "*", 
+    RowBox[{"temperature", "^", 
+     RowBox[{"(", "0.7355", ")"}]}]}]}], ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.831808500248146*^9, 3.831808548464101*^9}, {
+   3.831811152259429*^9, 3.8318111618227367`*^9}, {3.83181148949723*^9, 
+   3.831811489913636*^9}, {3.831811949368433*^9, 3.8318120171012774`*^9}, {
+   3.8318120657992887`*^9, 3.831812068956225*^9}, 3.8319791493400908`*^9, 
+   3.8319838372336054`*^9},
+ CellLabel->"In[5]:=",ExpressionUUID->"6b684fe9-d3cc-47fb-9f6d-4b9068e8a301"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"balldiameter", "[", "7", "]"}], ":=", 
+   RowBox[{"0.76", "/", "Pi"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"balldiameter", "[", "6", "]"}], ":=", 
+   RowBox[{"0.7225", "/", "Pi"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"balldiameter", "[", "5", "]"}], ":=", 
+   RowBox[{"0.6925", "/", "Pi"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"ballmass", "[", "7", "]"}], ":=", "0.6"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"ballmass", "[", "6", "]"}], ":=", "0.53"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"ballmass", "[", "5", "]"}], ":=", "0.48"}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.83180874732924*^9, 3.831808748867907*^9}, {
+   3.831808822229519*^9, 3.831808857429311*^9}, {3.831812721284752*^9, 
+   3.831812782360808*^9}, {3.831812863212891*^9, 3.831812937075738*^9}, {
+   3.8318336811545877`*^9, 3.83183368179399*^9}, {3.8319726863726034`*^9, 
+   3.831972690560923*^9}, {3.8319727793919964`*^9, 3.83197278117282*^9}, {
+   3.8319728866092043`*^9, 3.8319729031015234`*^9}, 3.8319791493400908`*^9, {
+   3.831983999085554*^9, 3.831983999664528*^9}, {3.83217371178907*^9, 
+   3.832173730601048*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"9ea1ec88-27e0-4cd3-8322-de28b4310804"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"k", "[", 
+    RowBox[{"temperature_", ",", "size_"}], "]"}], ":=", 
+   RowBox[{"3", " ", "Pi", "*", 
+    RowBox[{"airviscosity", "[", "temperature", "]"}], "*", 
+    RowBox[{"balldiameter", "[", "size", "]"}]}]}], ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.831808348795849*^9, 3.831808414424852*^9}, 
+   3.831808454027017*^9, {3.831811999205679*^9, 3.831812000544538*^9}, {
+   3.831812072864462*^9, 3.8318120741229763`*^9}, 3.8318121664483128`*^9, {
+   3.8318122008259983`*^9, 3.831812214000184*^9}, 3.8319791493400908`*^9},
+ CellLabel->"In[12]:=",ExpressionUUID->"ebd94f5a-b8da-4372-a566-bc8cfcdedf4d"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"rimdiameter", "=", "0.4545"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rimheight", "=", "3.05"}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.831815254167252*^9, 3.8318152574563417`*^9}, {
+   3.831815299536422*^9, 3.8318153056087017`*^9}, {3.831815695306175*^9, 
+   3.8318156955593357`*^9}, {3.831833624280641*^9, 3.831833629083198*^9}, {
+   3.831833659461886*^9, 3.8318336644770117`*^9}, 3.831979149341129*^9, {
+   3.8319840433243885`*^9, 3.8319840438145*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"057a62ff-6471-4b01-a5f7-344dfcf4726f"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"releaseheight", "[", "playerheight_", "]"}], ":=", 
+   RowBox[{"1.25", "*", "playerheight"}]}], ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.831816197924327*^9, 3.8318162173608723`*^9}, 
+   3.831979149341129*^9},
+ CellLabel->"In[15]:=",ExpressionUUID->"410075e3-984e-43df-9d1a-ed592b79203e"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"releasedistance", "[", "federation_", "]"}], ":=", 
+   RowBox[{"5.8", "-", "1.575", "-", "0.0635"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"releasedistance", "[", "\"\<NBA\>\"", "]"}], ":=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"14", "-", 
+       RowBox[{"3", "/", "12"}]}], ")"}], "*", "0.3048"}], "-", "0.0635"}]}], 
+  ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.8318162260585003`*^9, 3.831816230249309*^9}, {
+   3.8318166215537567`*^9, 3.831816662372863*^9}, {3.8318166958855457`*^9, 
+   3.8318167610919724`*^9}, {3.831816805620071*^9, 3.8318168957011013`*^9}, 
+   3.831979149341129*^9},
+ CellLabel->"In[16]:=",ExpressionUUID->"05685621-b533-4f81-8594-b62c6743f9ff"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Equations and optimization methods", "Subsubsection",
+ CellChangeTimes->{{3.8319839221675625`*^9, 
+  3.8319839591025925`*^9}},ExpressionUUID->"6fb06417-271b-4257-bdc7-\
+6dcdde4cfae3"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"x", "[", 
+    RowBox[{
+    "t_", ",", "temperature_", ",", "size_", ",", "v0_", ",", "angle_"}], 
+    "]"}], ":=", 
+   RowBox[{
+    RowBox[{"ballmass", "[", "size", "]"}], " ", 
+    RowBox[{"v0", "/", 
+     RowBox[{"k", "[", 
+      RowBox[{"temperature", ",", "size"}], "]"}]}], " ", 
+    RowBox[{"Cos", "[", "angle", "]"}], " ", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", 
+      RowBox[{"Exp", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"-", 
+          RowBox[{"k", "[", 
+           RowBox[{"temperature", ",", "size"}], "]"}]}], "/", 
+         RowBox[{"ballmass", "[", "size", "]"}]}], "t"}], "]"}]}], ")"}]}]}], 
+  ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.8318078035283527`*^9, 3.83180790538978*^9}, {
+   3.8318084233265142`*^9, 3.831808433605255*^9}, {3.831812219612817*^9, 
+   3.831812289122731*^9}, {3.831818518157371*^9, 3.831818518451874*^9}, {
+   3.8318186883332644`*^9, 3.831818702474155*^9}, {3.831818803581106*^9, 
+   3.83181882047372*^9}, {3.831818852922039*^9, 3.8318188926576433`*^9}, {
+   3.831902692223132*^9, 3.8319027878277082`*^9}, 3.8319791493400908`*^9, 
+   3.831983842410602*^9},
+ CellLabel->"In[18]:=",ExpressionUUID->"357bce85-e7bd-4f1d-8daf-8ab9cd498732"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"y", "[", 
+    RowBox[{
+    "t_", ",", "temperature_", ",", "size_", ",", "city_", ",", "v0_", ",", 
+     "angle_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"ballmass", "[", "size", "]"}], " ", 
+     RowBox[{
+      RowBox[{"g", "[", "city", "]"}], "/", 
+      RowBox[{"k", "[", 
+       RowBox[{"temperature", ",", "size"}], "]"}]}], " ", "t"}], "-", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"ballmass", "[", "size", "]"}], "/", 
+      RowBox[{"k", "[", 
+       RowBox[{"temperature", ",", "size"}], "]"}]}], 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"v0", " ", 
+        RowBox[{"Sin", "[", "angle", "]"}]}], "-", 
+       RowBox[{
+        RowBox[{"ballmass", "[", "size", "]"}], " ", 
+        RowBox[{
+         RowBox[{"g", "[", "city", "]"}], "/", 
+         RowBox[{"k", "[", 
+          RowBox[{"temperature", ",", "size"}], "]"}]}]}]}], ")"}], 
+     RowBox[{"Exp", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", 
+         RowBox[{"k", "[", 
+          RowBox[{"temperature", ",", "size"}], "]"}]}], "/", 
+        RowBox[{"ballmass", " ", "[", "size", "]"}]}], "t"}], "]"}]}], "+", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"ballmass", "[", "size", "]"}], "/", 
+      RowBox[{"k", "[", 
+       RowBox[{"temperature", ",", "size"}], "]"}]}], 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"v0", " ", 
+        RowBox[{"Sin", "[", "angle", "]"}]}], "-", 
+       RowBox[{
+        RowBox[{"ballmass", "[", "size", "]"}], " ", 
+        RowBox[{
+         RowBox[{"g", "[", "city", "]"}], "/", 
+         RowBox[{"k", "[", 
+          RowBox[{"temperature", ",", "size"}], "]"}]}]}]}], ")"}]}]}]}], 
+  ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.},
+ CellChangeTimes->{{3.831808099491153*^9, 3.83180816324783*^9}, {
+   3.831808427367947*^9, 3.8318084451574373`*^9}, {3.8318115346804237`*^9, 
+   3.8318115421843576`*^9}, {3.831812258366996*^9, 3.831812305739607*^9}, {
+   3.8318125337921*^9, 3.831812569839653*^9}, {3.831812713346362*^9, 
+   3.831812716002932*^9}, {3.831818692574902*^9, 3.831818700625329*^9}, {
+   3.831818822560671*^9, 3.8318188762803707`*^9}, {3.831902795744935*^9, 
+   3.831902894584934*^9}, 3.8319791493400908`*^9, 3.831983845474599*^9},
+ CellLabel->"In[19]:=",ExpressionUUID->"62025da5-c1c9-4117-9fa5-eda5bd84f763"]
+}, Open  ]],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"optimizationroutine", "[", 
+    RowBox[{
+    "\"\<asclose\>\"", ",", "temperature_", ",", "size_", ",", "federation_", 
+     ",", "fromthemiddle_", ",", "city_", ",", "playerheight_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{"NMinimize", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"Abs", "[", 
+         RowBox[{
+          RowBox[{"x", "[", 
+           RowBox[{"tmax", ",", 
+            RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+            ",", "angle"}], "]"}], "-", 
+          RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+          RowBox[{
+           RowBox[{"fromthemiddle", "/", "100"}], "*", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"rimdiameter", "/", "2"}], "-", 
+             RowBox[{
+              RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}], 
+            ")"}]}]}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"x", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+           ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{
+          RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+          RowBox[{"rimdiameter", "/", "2"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], ">", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}], "+", 
+          RowBox[{
+           RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}]}], ",", 
+        RowBox[{"tmax", ">", "tmax2", ">", "0"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"tmax", ",", "0.8", ",", "1.2"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"tmax2", ",", "0.75", ",", "1.15"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"v0", ",", "6", ",", "8"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"angle", ",", 
+          RowBox[{"50", 
+           RowBox[{"Pi", "/", "180"}]}], ",", 
+          RowBox[{"60", 
+           RowBox[{"Pi", "/", "180"}]}]}], "}"}]}], "}"}], ",", 
+      RowBox[{"MaxIterations", "\[Rule]", "100"}]}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"optimizationroutine", "[", 
+    RowBox[{
+    "\"\<minv0\>\"", ",", "temperature_", ",", "size_", ",", "federation_", 
+     ",", "fromthemiddle_", ",", "city_", ",", "playerheight_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{"NMinimize", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"v0", ",", 
+        RowBox[{
+         RowBox[{"Abs", "[", 
+          RowBox[{
+           RowBox[{"x", "[", 
+            RowBox[{"tmax", ",", 
+             RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+             ",", "angle"}], "]"}], "-", 
+           RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+           RowBox[{
+            RowBox[{"fromthemiddle", "/", "100"}], "*", 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{"rimdiameter", "/", "2"}], "-", 
+              RowBox[{
+               RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}], 
+             ")"}]}]}], "]"}], "<", 
+         RowBox[{"10", "^", 
+          RowBox[{"(", 
+           RowBox[{"-", "4"}], ")"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"x", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+           ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{
+          RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+          RowBox[{"rimdiameter", "/", "2"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], ">", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}], "+", 
+          RowBox[{
+           RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}]}], ",", 
+        RowBox[{"tmax", ">", "tmax2", ">", "0"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"tmax", ",", "0.8", ",", "1.3"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"tmax2", ",", "0.75", ",", "1.25"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"v0", ",", "6", ",", "7.5"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"angle", ",", 
+          RowBox[{"50", 
+           RowBox[{"Pi", "/", "180"}]}], ",", 
+          RowBox[{"60", 
+           RowBox[{"Pi", "/", "180"}]}]}], "}"}]}], "}"}], ",", 
+      RowBox[{"MaxIterations", "\[Rule]", "100"}]}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"optimizationroutine", "[", 
+    RowBox[{
+    "\"\<minv1\>\"", ",", "temperature_", ",", "size_", ",", "federation_", 
+     ",", "fromthemiddle_", ",", "city_", ",", "playerheight_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{"NMinimize", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"D", "[", 
+          RowBox[{
+           RowBox[{"x", "[", 
+            RowBox[{"t", ",", 
+             RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+             ",", "angle"}], "]"}], ",", "t"}], "]"}], "/.", 
+         RowBox[{"t", "\[Rule]", "tmax2"}]}], ",", 
+        RowBox[{
+         RowBox[{"Abs", "[", 
+          RowBox[{
+           RowBox[{"x", "[", 
+            RowBox[{"tmax", ",", 
+             RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+             ",", "angle"}], "]"}], "-", 
+           RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+           RowBox[{
+            RowBox[{"fromthemiddle", "/", "100"}], "*", 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{"rimdiameter", "/", "2"}], "-", 
+              RowBox[{
+               RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}], 
+             ")"}]}]}], "]"}], "<", 
+         RowBox[{"10", "^", 
+          RowBox[{"(", 
+           RowBox[{"-", "4"}], ")"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"x", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+           ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{
+          RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+          RowBox[{"rimdiameter", "/", "2"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], ">", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}], "+", 
+          RowBox[{
+           RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}]}], ",", 
+        RowBox[{"tmax", ">", "tmax2", ">", "0"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"tmax", ",", "0.8", ",", "1.3"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"tmax2", ",", "0.75", ",", "1.25"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"v0", ",", "6", ",", "8"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"angle", ",", 
+          RowBox[{"50", 
+           RowBox[{"Pi", "/", "180"}]}], ",", 
+          RowBox[{"60", 
+           RowBox[{"Pi", "/", "180"}]}]}], "}"}]}], "}"}], ",", 
+      RowBox[{"MaxIterations", "\[Rule]", "100"}]}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"optimizationroutine", "[", 
+    RowBox[{
+    "\"\<highestarc\>\"", ",", "temperature_", ",", "size_", ",", 
+     "federation_", ",", "fromthemiddle_", ",", "city_", ",", 
+     "playerheight_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{"NMaximize", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"y", "[", 
+         RowBox[{"tmax2", ",", 
+          RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+          ",", "v0", ",", "angle"}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"Abs", "[", 
+          RowBox[{
+           RowBox[{"x", "[", 
+            RowBox[{"tmax", ",", 
+             RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+             ",", "angle"}], "]"}], "-", 
+           RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+           RowBox[{
+            RowBox[{"fromthemiddle", "/", "100"}], "*", 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{"rimdiameter", "/", "2"}], "-", 
+              RowBox[{
+               RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}], 
+             ")"}]}]}], "]"}], "<", 
+         RowBox[{"10", "^", 
+          RowBox[{"(", 
+           RowBox[{"-", "4"}], ")"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"y", "[", 
+          RowBox[{"tmax", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "city", 
+           ",", "v0", ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{"rimheight", "-", 
+          RowBox[{"releaseheight", "[", "playerheight", "]"}]}]}], ",", 
+        RowBox[{
+         RowBox[{"x", "[", 
+          RowBox[{"tmax2", ",", 
+           RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+           ",", "angle"}], "]"}], "\[Equal]", 
+         RowBox[{
+          RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+          RowBox[{"rimdiameter", "/", "2"}]}]}], ",", 
+        RowBox[{"tmax", ">", "tmax2", ">", "0"}], ",", 
+        RowBox[{"v0", "<", "10"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"tmax", ",", "0.8", ",", "1.5"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"tmax2", ",", "0.75", ",", "1.45"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"v0", ",", "6", ",", "8"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"angle", ",", 
+          RowBox[{"70", 
+           RowBox[{"Pi", "/", "180"}]}], ",", 
+          RowBox[{"85", 
+           RowBox[{"Pi", "/", "180"}]}]}], "}"}]}], "}"}], ",", 
+      RowBox[{"MaxIterations", "\[Rule]", "100"}]}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.8319765221874933`*^9, 3.831976563186532*^9}, {
+  3.831976982324479*^9, 3.8319771215450273`*^9}, {3.8319772742510614`*^9, 
+  3.8319773049071627`*^9}, {3.8319778201387653`*^9, 3.831977909983723*^9}, {
+  3.8319779563267345`*^9, 3.831978017734766*^9}, {3.8319780755836596`*^9, 
+  3.8319780772177224`*^9}, {3.831978108276642*^9, 3.8319781108186564`*^9}, {
+  3.831978879696312*^9, 3.8319788855102434`*^9}, {3.831980468844234*^9, 
+  3.8319806898032637`*^9}, {3.8319807225022526`*^9, 3.8319807238762617`*^9}, {
+  3.83198084839321*^9, 3.831980867974176*^9}, {3.832152264035096*^9, 
+  3.83215232024533*^9}, {3.8321668190782795`*^9, 3.8321668381987886`*^9}},
+ CellLabel->"In[20]:=",ExpressionUUID->"489ee6df-7e79-4879-92f1-148a70649524"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Graphic objects", "Subsubsection",
+ CellChangeTimes->{{3.8319840165597925`*^9, 
+  3.8319840274395175`*^9}},ExpressionUUID->"337f8bdb-ecbd-4535-9913-\
+d3cf86ffc243"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"ball", "[", 
+    RowBox[{"size_", ",", "playerheight_"}], "]"}], ":=", 
+   RowBox[{"Disk", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"0", ",", 
+       RowBox[{"releaseheight", "[", "playerheight", "]"}]}], "}"}], ",", 
+     RowBox[{
+      RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}], "]"}]}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.832150479122904*^9, 3.8321504808707223`*^9}},
+ CellLabel->"In[24]:=",ExpressionUUID->"75e6dfd6-117f-410a-a760-768701f510a3"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"rim", "[", "federation_", "]"}], ":=", 
+   RowBox[{"Line", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"releasedistance", "[", "federation", "]"}], "-", 
+         RowBox[{"rimdiameter", "/", "2"}]}], ",", "rimheight"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"releasedistance", "[", "federation", "]"}], "+", 
+         RowBox[{"rimdiameter", "/", "2"}]}], ",", "rimheight"}], "}"}]}], 
+     "}"}], "]"}]}], ";"}]], "Input",
+ CellLabel->"In[25]:=",ExpressionUUID->"282a97ee-a4b7-4a11-96e0-6d0944e0a1d1"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"inhoop", "[", 
+    RowBox[{"fromthemiddle_", ",", "size_", ",", "federation_"}], "]"}], ":=", 
+   RowBox[{"Graphics", "[", 
+    RowBox[{"{", 
+     RowBox[{"Black", ",", 
+      RowBox[{"Circle", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"releasedistance", "[", "federation", "]"}], ",", "2.3"}], 
+         "}"}], ",", "rimdiameter"}], "]"}], ",", "Orange", ",", 
+      RowBox[{"Disk", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"releasedistance", "[", "federation", "]"}], "+", 
+           RowBox[{
+            RowBox[{"fromthemiddle", "/", "50"}], "*", 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{"rimdiameter", "/", "2"}], "-", 
+              RowBox[{
+               RowBox[{"balldiameter", "[", "size", "]"}], "/", "2"}]}], 
+             ")"}]}]}], ",", "2.3"}], "}"}], ",", 
+        RowBox[{"balldiameter", "[", "size", "]"}]}], "]"}]}], "}"}], "]"}]}],
+   ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{{3.8319302401678696`*^9, 3.831930535237615*^9}, {
+   3.831930570567314*^9, 3.8319306840975046`*^9}, {3.831930746007449*^9, 
+   3.8319307494573865`*^9}, {3.8319310422872667`*^9, 3.831931050977196*^9}, {
+   3.831931206337341*^9, 3.831931273397152*^9}, {3.831931306637169*^9, 
+   3.831931319196978*^9}, {3.8319729257294254`*^9, 3.831972926528449*^9}, 
+   3.8319791874842467`*^9, 3.8319838578671517`*^9},
+ CellLabel->"In[26]:=",ExpressionUUID->"ef840eb2-b21d-4ff0-81f9-aad49c237a66"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"textv", "[", 
+    RowBox[{"v0_", ",", "federation_"}], "]"}], ":=", 
+   RowBox[{"Text", "[", 
+    RowBox[{
+     RowBox[{"Style", "[", 
+      RowBox[{
+       RowBox[{"StringForm", "[", 
+        RowBox[{"\"\<\!\(\*SubscriptBox[\(v\), \(0\)]\) = `1` m/s\>\"", ",", 
+         RowBox[{"NumberForm", "[", 
+          RowBox[{"v0", ",", "4"}], "]"}]}], "]"}], ",", "14"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"releasedistance", "[", "federation", "]"}], ",", "1.48"}], 
+      "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"texta", "[", 
+    RowBox[{"angle_", ",", "federation_"}], "]"}], ":=", 
+   RowBox[{"Text", "[", 
+    RowBox[{
+     RowBox[{"Style", "[", 
+      RowBox[{
+       RowBox[{"StringForm", "[", 
+        RowBox[{
+        "\"\<\!\(\*SubscriptBox[\(\[Theta]\), \(0\)]\) = `1`\[Degree]\>\"", 
+         ",", 
+         RowBox[{"NumberForm", "[", 
+          RowBox[{
+           RowBox[{"angle", "*", 
+            RowBox[{"180", "/", "Pi"}]}], ",", "4"}], "]"}]}], "]"}], ",", 
+       "14"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"releasedistance", "[", "federation", "]"}], ",", "1"}], 
+      "}"}]}], "]"}]}], ";"}]}], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{{3.8318360936954107`*^9, 3.831836095669401*^9}, {
+   3.8318364027674217`*^9, 3.831836415549327*^9}, {3.831836716963984*^9, 
+   3.831836725084446*^9}, {3.831836791076549*^9, 3.8318368462131968`*^9}, {
+   3.831836884804368*^9, 3.831836958435416*^9}, {3.831837007455521*^9, 
+   3.831837041124846*^9}, {3.831837098996426*^9, 3.8318372240644207`*^9}, {
+   3.831837265808651*^9, 3.831837274938368*^9}, {3.831837420391635*^9, 
+   3.831837469712072*^9}, {3.8319312445372114`*^9, 3.8319312466072264`*^9}, {
+   3.8319312777672997`*^9, 3.831931278467297*^9}, {3.831931396289158*^9, 
+   3.8319314157293835`*^9}, {3.8319314459328723`*^9, 3.8319314464952326`*^9}, 
+   3.8319791874832783`*^9, {3.8319799966696978`*^9, 3.8319800032026567`*^9}, {
+   3.8319838536086*^9, 3.831983854273212*^9}},
+ CellLabel->"In[27]:=",ExpressionUUID->"4380d859-a47d-4d6a-8927-143175989ccc"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"anglearrow", "[", 
+    RowBox[{"angle_", ",", "v0_", ",", "height_"}], "]"}], ":=", 
+   RowBox[{"Arrow", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"releaseheight", "[", "height", "]"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"0.05", "*", "v0"}], ",", 
+        RowBox[{
+         RowBox[{"releaseheight", "[", "height", "]"}], "+", 
+         RowBox[{"0.05", "*", "v0", "*", 
+          RowBox[{"Tan", "[", "angle", "]"}]}]}]}], "}"}]}], "}"}], "]"}]}], 
+  ";"}]], "Input",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.},
+ CellChangeTimes->{{3.831835669974146*^9, 3.831835676643663*^9}, {
+   3.83183572656973*^9, 3.831835757364127*^9}, {3.831835808107411*^9, 
+   3.831835871290073*^9}, {3.8318360046876993`*^9, 3.831836023178219*^9}, {
+   3.8318360774428377`*^9, 3.83183607843225*^9}, {3.831839184658599*^9, 
+   3.831839222780099*^9}, {3.831839255167807*^9, 3.831839256768672*^9}, 
+   3.8319791874832783`*^9},
+ CellLabel->"In[29]:=",ExpressionUUID->"696b93d6-7d26-4113-a9cb-6e60f298c736"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Main program", "Subsection",
+ CellChangeTimes->{{3.8319840797124476`*^9, 3.831984090319482*^9}, {
+  3.8319841459834557`*^9, 
+  3.831984174199439*^9}},ExpressionUUID->"a1d1b0f9-fc34-44e0-8c81-\
+46dcc6834f73"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", 
+  RowBox[{
+   RowBox[{"Show", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"Quiet", "[", 
+       RowBox[{
+        RowBox[{"ParametricPlot", "[", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"x", "[", 
+             RowBox[{"t", ",", 
+              RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", "v0", 
+              ",", "angle"}], "]"}], ",", 
+            RowBox[{
+             RowBox[{"y", "[", 
+              RowBox[{"t", ",", 
+               RowBox[{"temperature", "+", "273.15"}], ",", "size", ",", 
+               "city", ",", "v0", ",", "angle"}], "]"}], "+", 
+             RowBox[{"releaseheight", "[", "playerheight", "]"}]}]}], "}"}], 
+          ",", 
+          RowBox[{"{", 
+           RowBox[{"t", ",", "0", ",", "tmax"}], "}"}], ",", 
+          RowBox[{"PlotRange", "\[Rule]", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"{", 
+              RowBox[{
+               RowBox[{"-", "1"}], ",", "5"}], "}"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"0", ",", "6"}], "}"}]}], "}"}]}], ",", 
+          RowBox[{"Axes", "\[Rule]", 
+           RowBox[{"{", 
+            RowBox[{"True", ",", "False"}], "}"}]}], ",", 
+          RowBox[{"Prolog", "\[Rule]", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"rim", "[", "federation", "]"}], ",", "Orange", ",", 
+             RowBox[{"ball", "[", 
+              RowBox[{"size", ",", "playerheight"}], "]"}]}], "}"}]}], ",", 
+          RowBox[{"Epilog", "\[Rule]", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"anglearrow", "[", 
+              RowBox[{"angle", ",", "v0", ",", "playerheight"}], "]"}], ",", 
+             RowBox[{"textv", "[", 
+              RowBox[{"v0", ",", "federation"}], "]"}], ",", 
+             RowBox[{"texta", "[", 
+              RowBox[{"angle", ",", "federation"}], "]"}]}], "}"}]}]}], "]"}],
+         "/.", 
+        RowBox[{"optimizationroutine", "[", 
+         RowBox[{
+         "routine", ",", "temperature", ",", "size", ",", "federation", ",", 
+          "fromthemiddle", ",", "city", ",", "playerheight"}], "]"}]}], "]"}],
+       ",", 
+      RowBox[{"inhoop", "[", 
+       RowBox[{"fromthemiddle", ",", "size", ",", "federation"}], "]"}]}], 
+     "}"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "federation", ",", "\"\<NBA\>\"", ",", 
+       "\"\<Federation (for free throw line distance)\>\""}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<NBA\>\"", ",", "\"\<FIBA\>\""}], "}"}], ",", 
+     RowBox[{"ControlType", "\[Rule]", "RadioButtonBar"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "playerheight", ",", "1.95", ",", "\"\<Player's height [m]\>\""}], 
+      "}"}], ",", "1.5", ",", "2.3", ",", "0.01", ",", 
+     RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"size", ",", "7", ",", "\"\<Basketball size\>\""}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"5", ",", "6", ",", "7"}], "}"}], ",", 
+     RowBox[{"ControlType", "\[Rule]", "RadioButtonBar"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "temperature", ",", "22", ",", "\"\<Temperature [\[Degree]C]\>\""}], 
+      "}"}], ",", "15", ",", "30", ",", "1", ",", 
+     RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"city", ",", "\"\<Chicago\>\"", ",", "\"\<City\>\""}], "}"}], 
+     ",", 
+     RowBox[{"{", 
+      RowBox[{
+      "\"\<Denver\>\"", ",", "\"\<Chicago\>\"", ",", "\"\<Seattle\>\""}], 
+      "}"}], ",", 
+     RowBox[{"ControlType", "\[Rule]", "RadioButtonBar"}]}], "}"}], ",", 
+   "\[IndentingNewLine]", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "fromthemiddle", ",", "0", ",", 
+       "\"\<Where do you aim? [% of max. displacement]\>\""}], "}"}], ",", 
+     RowBox[{"-", "100"}], ",", "100", ",", "1", ",", 
+     RowBox[{"Appearance", "\[Rule]", "\"\<Labeled\>\""}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+      "routine", ",", "\"\<minv0\>\"", ",", "\"\<What do we optimize?\>\""}], 
+      "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"\"\<asclose\>\"", "\[Rule]", "\"\<closest aim\>\""}], ",", 
+       RowBox[{
+       "\"\<minv0\>\"", "\[Rule]", 
+        "\"\<min. \!\(\*SubscriptBox[\(v\), \(0\)]\)\>\""}], ",", 
+       RowBox[{
+       "\"\<minv1\>\"", "\[Rule]", 
+        "\"\<min. \!\(\*SubscriptBox[\(v\), \(1\)]\) (above the rim)\>\""}], 
+       ",", 
+       RowBox[{
+       "\"\<highestarc\>\"", "\[Rule]", 
+        "\"\<highest arc (above the rim)\>\""}]}], "}"}], ",", 
+     RowBox[{"ControlType", "\[Rule]", "RadioButtonBar"}], ",", 
+     RowBox[{"Appearance", "\[Rule]", 
+      RowBox[{"\"\<Vertical\>\"", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{"Automatic", ",", "2"}], "}"}]}]}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.831899867776903*^9, 3.8319000519617453`*^9}, {
+   3.831900100623147*^9, 3.831900101406783*^9}, {3.831900185553853*^9, 
+   3.8319001943675203`*^9}, {3.831900288022641*^9, 3.8319002934061813`*^9}, {
+   3.8319004010829363`*^9, 3.8319004271502647`*^9}, {3.83190073791212*^9, 
+   3.831900745036338*^9}, {3.831900867069528*^9, 3.83190086715838*^9}, {
+   3.831900915000813*^9, 3.831900930093433*^9}, {3.8319139180146008`*^9, 
+   3.831913920681238*^9}, {3.8319145063002577`*^9, 3.831914508298808*^9}, {
+   3.831914594168765*^9, 3.831914640466195*^9}, {3.83191469875555*^9, 
+   3.83191469887862*^9}, {3.831917858448701*^9, 3.831917896056403*^9}, {
+   3.8319179314637737`*^9, 3.83191793529918*^9}, {3.831918085551283*^9, 
+   3.831918191135076*^9}, 3.831918239262848*^9, {3.831918340516227*^9, 
+   3.831918343489312*^9}, 3.831918377199069*^9, {3.831918421585164*^9, 
+   3.831918467527121*^9}, {3.831918547968573*^9, 3.8319186202452908`*^9}, {
+   3.831918651741048*^9, 3.83191873616821*^9}, 3.8319226433823276`*^9, {
+   3.8319236704634414`*^9, 3.831923699746279*^9}, {3.831923793123158*^9, 
+   3.8319238279582543`*^9}, 3.8319242173209176`*^9, {3.8319244399972734`*^9, 
+   3.831924458211734*^9}, {3.8319248367393355`*^9, 3.831924936359506*^9}, {
+   3.8319249994766855`*^9, 3.831924999757865*^9}, {3.831925116069647*^9, 
+   3.831925123117962*^9}, {3.8319251682085505`*^9, 3.831925182283354*^9}, {
+   3.8319252238281965`*^9, 3.831925253467363*^9}, {3.831925339615426*^9, 
+   3.8319253479019313`*^9}, {3.8319258676398907`*^9, 3.831925880871147*^9}, 
+   3.8319277885119667`*^9, {3.8319279234253664`*^9, 3.8319279742002544`*^9}, {
+   3.83192802668941*^9, 3.8319280268492355`*^9}, {3.831928066879797*^9, 
+   3.8319280669496737`*^9}, {3.8319287848578568`*^9, 
+   3.8319287870604568`*^9}, {3.83192899250715*^9, 3.831929009026268*^9}, {
+   3.831929222939546*^9, 3.8319292595960064`*^9}, {3.8319293015369945`*^9, 
+   3.8319293407997866`*^9}, {3.831929442397578*^9, 3.831929443116164*^9}, {
+   3.8319295246430497`*^9, 3.831929555044081*^9}, {3.8319295947732344`*^9, 
+   3.8319295959604607`*^9}, {3.831929630177099*^9, 3.8319296637968483`*^9}, {
+   3.8319298126956835`*^9, 3.831930056698984*^9}, {3.8319301618804855`*^9, 
+   3.8319301679280787`*^9}, {3.8319301995954523`*^9, 
+   3.8319302163779607`*^9}, {3.8319307929174523`*^9, 
+   3.8319308035673723`*^9}, {3.8319308717973385`*^9, 3.831930939087286*^9}, {
+   3.8319310301673875`*^9, 3.831931030517253*^9}, {3.8319312976972694`*^9, 
+   3.8319312985370073`*^9}, {3.8319314224465485`*^9, 3.831931426820507*^9}, {
+   3.831931829942665*^9, 3.83193184479932*^9}, {3.831931946345398*^9, 
+   3.831931948915018*^9}, {3.831931987255642*^9, 3.8319319927231193`*^9}, {
+   3.831932030116502*^9, 3.8319320596251774`*^9}, {3.831972617764656*^9, 
+   3.831972623247748*^9}, {3.8319766440024357`*^9, 3.8319766459444876`*^9}, 
+   3.8319770866911907`*^9, {3.831978094186658*^9, 3.8319781025176687`*^9}, {
+   3.83197815782164*^9, 3.831978208039604*^9}, {3.8319782398126926`*^9, 
+   3.831978308694552*^9}, {3.8319783388245263`*^9, 3.831978344385178*^9}, 
+   3.8319783812252493`*^9, {3.831979491160909*^9, 3.831979544229892*^9}, {
+   3.8319795746698775`*^9, 3.8319796207179403`*^9}, {3.831979691681798*^9, 
+   3.8319797777897587`*^9}, {3.832150509738978*^9, 3.832150509910796*^9}, {
+   3.832152196857071*^9, 3.8321522182645807`*^9}},
+ CellLabel->"In[30]:=",ExpressionUUID->"97a35275-a78a-4a6d-8104-8c2e5508fffd"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`city$$ = 
+    "Chicago", $CellContext`federation$$ = 
+    "NBA", $CellContext`fromthemiddle$$ = 0, $CellContext`playerheight$$ = 
+    1.95, $CellContext`routine$$ = "minv0", $CellContext`size$$ = 
+    7, $CellContext`temperature$$ = 22, Typeset`show$$ = True, 
+    Typeset`bookmarkList$$ = {}, Typeset`bookmarkMode$$ = "Menu", 
+    Typeset`animator$$, Typeset`animvar$$ = 1, Typeset`name$$ = 
+    "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`federation$$], "NBA", 
+       "Federation (for free throw line distance)"}, {"NBA", "FIBA"}}, {{
+       Hold[$CellContext`playerheight$$], 1.95, "Player's height [m]"}, 1.5, 
+      2.3, 0.01}, {{
+       Hold[$CellContext`size$$], 7, "Basketball size"}, {5, 6, 7}}, {{
+       Hold[$CellContext`temperature$$], 22, "Temperature [\[Degree]C]"}, 15, 
+      30, 1}, {{
+       Hold[$CellContext`city$$], "Chicago", "City"}, {
+      "Denver", "Chicago", "Seattle"}}, {{
+       Hold[$CellContext`fromthemiddle$$], 0, 
+       "Where do you aim? [% of max. displacement]"}, -100, 100, 1}, {{
+       Hold[$CellContext`routine$$], "minv0", "What do we optimize?"}, {
+      "asclose" -> "closest aim", "minv0" -> 
+       "min. \!\(\*SubscriptBox[\(v\), \(0\)]\)", "minv1" -> 
+       "min. \!\(\*SubscriptBox[\(v\), \(1\)]\) (above the rim)", 
+       "highestarc" -> "highest arc (above the rim)"}}}, Typeset`size$$ = {
+    360., {181., 186.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`city$$ = 
+        "Chicago", $CellContext`federation$$ = 
+        "NBA", $CellContext`fromthemiddle$$ = 0, $CellContext`playerheight$$ = 
+        1.95, $CellContext`routine$$ = "minv0", $CellContext`size$$ = 
+        7, $CellContext`temperature$$ = 22}, "ControllerVariables" :> {}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> Show[{
+         Quiet[
+          ReplaceAll[
+           ParametricPlot[{
+             $CellContext`x[$CellContext`t, $CellContext`temperature$$ + 
+              273.15, $CellContext`size$$, $CellContext`v0, \
+$CellContext`angle], $CellContext`y[$CellContext`t, \
+$CellContext`temperature$$ + 
+               273.15, $CellContext`size$$, $CellContext`city$$, \
+$CellContext`v0, $CellContext`angle] + \
+$CellContext`releaseheight[$CellContext`playerheight$$]}, {$CellContext`t, 
+             0, $CellContext`tmax}, PlotRange -> {{-1, 5}, {0, 6}}, 
+            Axes -> {True, False}, Prolog -> {
+              $CellContext`rim[$CellContext`federation$$], Orange, 
+              $CellContext`ball[$CellContext`size$$, \
+$CellContext`playerheight$$]}, Epilog -> {
+              $CellContext`anglearrow[$CellContext`angle, $CellContext`v0, \
+$CellContext`playerheight$$], 
+              $CellContext`textv[$CellContext`v0, $CellContext`federation$$], 
+              $CellContext`texta[$CellContext`angle, \
+$CellContext`federation$$]}], 
+           $CellContext`optimizationroutine[$CellContext`routine$$, \
+$CellContext`temperature$$, $CellContext`size$$, $CellContext`federation$$, \
+$CellContext`fromthemiddle$$, $CellContext`city$$, \
+$CellContext`playerheight$$]]], 
+         $CellContext`inhoop[$CellContext`fromthemiddle$$, \
+$CellContext`size$$, $CellContext`federation$$]}], 
+      "Specifications" :> {{{$CellContext`federation$$, "NBA", 
+          "Federation (for free throw line distance)"}, {"NBA", "FIBA"}, 
+         ControlType -> 
+         RadioButtonBar}, {{$CellContext`playerheight$$, 1.95, 
+          "Player's height [m]"}, 1.5, 2.3, 0.01, Appearance -> 
+         "Labeled"}, {{$CellContext`size$$, 7, "Basketball size"}, {5, 6, 7}, 
+         ControlType -> 
+         RadioButtonBar}, {{$CellContext`temperature$$, 22, 
+          "Temperature [\[Degree]C]"}, 15, 30, 1, Appearance -> 
+         "Labeled"}, {{$CellContext`city$$, "Chicago", "City"}, {
+         "Denver", "Chicago", "Seattle"}, ControlType -> 
+         RadioButtonBar}, {{$CellContext`fromthemiddle$$, 0, 
+          "Where do you aim? [% of max. displacement]"}, -100, 100, 1, 
+         Appearance -> 
+         "Labeled"}, {{$CellContext`routine$$, "minv0", 
+          "What do we optimize?"}, {
+         "asclose" -> "closest aim", "minv0" -> 
+          "min. \!\(\*SubscriptBox[\(v\), \(0\)]\)", "minv1" -> 
+          "min. \!\(\*SubscriptBox[\(v\), \(1\)]\) (above the rim)", 
+          "highestarc" -> "highest arc (above the rim)"}, ControlType -> 
+         RadioButtonBar, Appearance -> ("Vertical" -> {Automatic, 2})}}, 
+      "Options" :> {}, "DefaultOptions" :> {}],
+     ImageSizeCache->{527., {303., 309.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UndoTrackedVariables:>{Typeset`show$$, Typeset`bookmarkMode$$},
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{{3.832151026604024*^9, 3.8321510413702807`*^9}, 
+   3.832151836860935*^9, 3.8321523814611073`*^9, 3.8321528975320644`*^9, 
+   3.8321668436818705`*^9, 3.8321745525797853`*^9, 3.833392413781723*^9},
+ CellLabel->"Out[30]=",ExpressionUUID->"35e60ffe-24b6-4716-919c-a642957752fe"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Literature", "Section",
+ CellChangeTimes->{{3.828513680226939*^9, 3.828513744126361*^9}, 
+   3.8319837871584425`*^9},ExpressionUUID->"98e3f73e-91f1-45d1-9e98-\
+87a3075a8f31"],
+
+Cell[TextData[{
+ "[1] ",
+ StyleBox["Gablonsky",
+  IgnoreSpellCheck->True],
+ " J., Lang A. ",
+ StyleBox["Modelling basketball free throws. ",
+  FontSlant->"Italic"],
+ "SIAM Review 47/4, p. 775-798.\t\
+https://digitalshowcase.oru.edu/cgi/viewcontent.cgi?article=1063&context=cose_\
+pub\n[2] ",
+ StyleBox["Nakano",
+  IgnoreSpellCheck->True],
+ " N. et al. ",
+ StyleBox["Basketball players minimize the effect of motor noise by using \
+near-minimum release speed in free-throw shooting. ",
+  FontSlant->"Italic"],
+ "Human Movement Science 70, 102583. \t\
+https://www.sciencedirect.com/science/article/abs/pii/S0167945719307237\n[3] \
+http://www.fiba.basketball/documents/BasketballEquipment.pdf -- official FIBA \
+rulebook with details on sizes of basketball equipment, namely the ball and \
+the rim.\n[4] \
+https://en.wikipedia.org/wiki/Gravity_of_Earth#Comparative_values_worldwide \
+-- table with values of standard gravity for different cities.\n[5] \
+https://upload.wikimedia.org/wikipedia/commons/6/6c/Basketball_courts.svg -- \
+diagram showing dimensions of basketball court, including free throw line \
+distance for both FIBA and NBA rulebook.\n[6] \
+https://www.tec-science.com/mechanics/gases-and-liquids/viscosity-of-liquids-\
+and-gases/#Formulas_for_calculating_the_viscosity_of_air_and_water -- formula \
+for air viscosity."
+}], "Text",
+ CellChangeTimes->{{3.8321733763824034`*^9, 3.8321733901449747`*^9}, {
+  3.832173443849001*^9, 3.832173489494705*^9}, {3.832173520088422*^9, 
+  3.8321736535162797`*^9}, {3.832173746274294*^9, 3.8321737731874*^9}, {
+  3.8321738142793217`*^9, 3.832173870301737*^9}, {3.8321739703619375`*^9, 
+  3.832173987762382*^9}, {3.8321740941145463`*^9, 3.83217412761298*^9}, {
+  3.8321743521895423`*^9, 
+  3.8321743585472803`*^9}},ExpressionUUID->"d435ec5b-b5c1-4f42-b24d-\
+6f9483ab426c"]
+}, Open  ]]
+},
+WindowSize->{1920, 997},
+WindowMargins->{{-8, Automatic}, {Automatic, -8}},
+TaggingRules->{"TryRealOnly" -> False},
+SpellingDictionaries->{"CorrectWords"->{
+ "inhoop", "tmax", "Inhoop", "Textv", "texta"}},
+FrontEndVersion->"12.1 for Microsoft Windows (64-bit) (June 9, 2020)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"21169359-cf88-4a95-9443-362f095f2033"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 517, 12, 120, "Section",ExpressionUUID->"b2d6c87f-a5f8-4e7e-ada2-39480c5402f5"],
+Cell[CellGroupData[{
+Cell[1100, 36, 155, 3, 53, "Section",ExpressionUUID->"35a5df7a-d647-4e78-8a92-4c3c5aa651ea"],
+Cell[1258, 41, 1061, 16, 56, "Text",ExpressionUUID->"a177ea52-916b-4245-9a74-46e46580d8f1"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2356, 62, 247, 4, 67, "Section",ExpressionUUID->"98d4cf06-e333-42b1-bf71-66ca76ed5aa6"],
+Cell[2606, 68, 21088, 417, 950, "Text",ExpressionUUID->"0c1f8466-8439-4c8c-9ff6-ec6575b7c8f4"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[23731, 490, 168, 3, 67, "Section",ExpressionUUID->"f7606e52-5ade-4090-8f1e-f9cd2cc4d451"],
+Cell[23902, 495, 6423, 128, 496, "Text",ExpressionUUID->"99fa6194-7eb2-4805-a64c-ee1ebfba7a40"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[30362, 628, 165, 3, 67, "Section",ExpressionUUID->"dd371ef8-aa2d-4384-8dbe-b80d5907d48f"],
+Cell[CellGroupData[{
+Cell[30552, 635, 164, 3, 53, "Subsection",ExpressionUUID->"8f761681-229c-4227-b09d-3a36f1fd1d27"],
+Cell[CellGroupData[{
+Cell[30741, 642, 169, 3, 44, "Subsubsection",ExpressionUUID->"291e6ad7-1faf-41b4-a4dd-5144690e643d"],
+Cell[CellGroupData[{
+Cell[30935, 649, 853, 21, 86, "Input",ExpressionUUID->"fb716270-c78f-4aec-ac46-73afa8f307ab",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[31791, 672, 749, 16, 28, "Input",ExpressionUUID->"6b684fe9-d3cc-47fb-9f6d-4b9068e8a301",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[32543, 690, 1416, 33, 124, "Input",ExpressionUUID->"9ea1ec88-27e0-4cd3-8322-de28b4310804",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[33962, 725, 701, 13, 28, "Input",ExpressionUUID->"ebd94f5a-b8da-4372-a566-bc8cfcdedf4d",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[34666, 740, 639, 11, 48, "Input",ExpressionUUID->"057a62ff-6471-4b01-a5f7-344dfcf4726f",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[35308, 753, 387, 8, 28, "Input",ExpressionUUID->"410075e3-984e-43df-9d1a-ed592b79203e",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[35698, 763, 820, 20, 48, "Input",ExpressionUUID->"05685621-b533-4f81-8594-b62c6743f9ff",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[36567, 789, 189, 3, 44, "Subsubsection",ExpressionUUID->"6fb06417-271b-4257-bdc7-6dcdde4cfae3"],
+Cell[CellGroupData[{
+Cell[36781, 796, 1293, 31, 28, "Input",ExpressionUUID->"357bce85-e7bd-4f1d-8daf-8ab9cd498732",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}],
+Cell[38077, 829, 2332, 60, 48, "Input",ExpressionUUID->"62025da5-c1c9-4117-9fa5-eda5bd84f763",
+ CellGroupingRules->{"GroupTogetherGrouping", 10000.}]
+}, Open  ]],
+Cell[40424, 892, 12135, 295, 314, "Input",ExpressionUUID->"489ee6df-7e79-4879-92f1-148a70649524"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[52596, 1192, 170, 3, 44, "Subsubsection",ExpressionUUID->"337f8bdb-ecbd-4535-9913-d3cf86ffc243"],
+Cell[52769, 1197, 529, 14, 28, "Input",ExpressionUUID->"75e6dfd6-117f-410a-a760-768701f510a3"],
+Cell[53301, 1213, 657, 18, 28, "Input",ExpressionUUID->"282a97ee-a4b7-4a11-96e0-6d0944e0a1d1"],
+Cell[CellGroupData[{
+Cell[53983, 1235, 1599, 37, 28, "Input",ExpressionUUID->"ef840eb2-b21d-4ff0-81f9-aad49c237a66",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}],
+Cell[55585, 1274, 2193, 50, 48, "Input",ExpressionUUID->"4380d859-a47d-4d6a-8927-143175989ccc",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}],
+Cell[57781, 1326, 1124, 26, 28, "Input",ExpressionUUID->"696b93d6-7d26-4113-a9cb-6e60f298c736",
+ CellGroupingRules->{"GroupTogetherGrouping", 10001.}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[58966, 1359, 213, 4, 53, "Subsection",ExpressionUUID->"a1d1b0f9-fc34-44e0-8c81-46dcc6834f73"],
+Cell[CellGroupData[{
+Cell[59204, 1367, 8497, 179, 181, "Input",ExpressionUUID->"97a35275-a78a-4a6d-8104-8c2e5508fffd"],
+Cell[67704, 1548, 5592, 103, 631, "Output",ExpressionUUID->"35e60ffe-24b6-4716-919c-a642957752fe"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[73357, 1658, 180, 3, 67, "Section",ExpressionUUID->"98e3f73e-91f1-45d1-9e98-87a3075a8f31"],
+Cell[73540, 1663, 1820, 37, 144, "Text",ExpressionUUID->"d435ec5b-b5c1-4f42-b24d-6f9483ab426c"]
+}, Open  ]]
+}
+]
+*)
+

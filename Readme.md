@@ -1,0 +1,1 @@
+Basketball free throw angle/velocity optimizer with various routines, scripted in Mathematica. Description in file (both .nb and its render to .pdf).
